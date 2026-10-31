@@ -69,6 +69,19 @@ class SecurityViewModelTest {
     }
 
     @Test
+    fun `disabling autohide persists false and refreshes widget`() = runTest {
+        every { walletApplication.hasWallet() } returns true
+        every { walletData.getWalletBalance() } returns Coin.COIN
+
+        val viewModel = createViewModel()
+        viewModel.setHideBalanceOnLaunch(false)
+        viewModel.viewModelScope.coroutineContext.job.children.toList().joinAll()
+
+        coVerify { walletUIConfig.set(WalletUIConfig.AUTO_HIDE_BALANCE, false) }
+        verify { WalletBalanceWidgetProvider.updateWidgets(walletApplication, Coin.COIN) }
+    }
+
+    @Test
     fun `setting autohide does not refresh widget when wallet is absent`() = runTest {
         every { walletApplication.hasWallet() } returns false
 
